@@ -59,6 +59,7 @@ optimizer = optax.adam(3e-4)
 optimizer = mup.wrap_optimizer(optimizer, adam=True) # 6. Use wrap_optimizer to get layer specific learning rates
 
 # Now the model can be trained as normal
+```
 
 ### Summary
 1. Replace output layers with `Readout` layers
