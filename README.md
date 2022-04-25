@@ -3,7 +3,7 @@
 This is a (very preliminary) port of Yang and Hu et al.'s [μP repo](https://github.com/microsoft/mup) to Haiku and JAX. It's not feature complete, and I'm very open to suggestions on improving the usability.
 
 ## Learning rate demo
-These plots show the evolution of the optimal learning rate for a 3-hidden-layer MLP on MNIST, trained for 15 epochs (10 trials per lr/width combination).
+These plots show the evolution of the optimal learning rate for a 3-hidden-layer MLP on MNIST, trained for 10 epochs (5 trials per lr/width combination).
 
 With standard parameterization, the learning rate optimum continues changing as the width increases:
 
