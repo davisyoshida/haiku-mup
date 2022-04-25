@@ -2,6 +2,7 @@ import haiku as hk
 import jax.numpy as jnp
 
 class ConstantStdInit(hk.initializers.Initializer):
+    """Initializer which wraps another initializer and scales down the variance by `div`"""
     def __init__(self, base_initializer, div):
         self.base = base_initializer
         self.div = div

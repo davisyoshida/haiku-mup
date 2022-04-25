@@ -14,9 +14,9 @@ from .module import Readout
 def get_shapes(params):
     return jax.tree_map(lambda p: p.shape, params)
 
-_mup_context = ContextVar('mup_context', default=None)
-
 class Mup:
+    """Class which tracks infinite shapes, and applies per-parameter learning rates/multipliers"""
+
     def __init__(self):
         self.base_shapes = None
 
@@ -26,6 +26,8 @@ class Mup:
 
     @contextmanager
     def init_context(self, base_shapes):
+        """A context manager which uses a custom Haiku creator to track parameter initialization
+        to rescale initialization and determine learning rates/weight multipliers"""
         self.base_shapes = base_shapes
         token = _mup_context.set(self)
         if len(self._adam_lrs):
@@ -37,6 +39,7 @@ class Mup:
             self.base_shapes = None
 
     def wrap_optimizer(self, optimizer, adam=True):
+        """Apply the per-parameter learning rates computed by `init_context` to an Optax optimizer."""
         if not self._adam_lrs:
             raise ValueError('Attempted to wrap optimizer before initializing network')
 
@@ -60,6 +63,8 @@ class Mup:
         )
 
     def retransform_model_fn(self, f):
+        """Wrap a function in a custom Haiku getter which applies weight multipliers where necessary."""
+
         @wraps(f)
         def fn(*args, **kwargs):
             with hk.custom_getter(partial(_mup_getter, mup_ctx=self)):
@@ -93,6 +98,9 @@ def _get_inf_ratios(mup_ctx, full_name, shape):
 
     inf_ratios = [b / a for a, b in zip(base, shape) if a != b]
     return n_inf, inf_ratios
+
+
+_mup_context = ContextVar('mup_context', default=None)
 
 def _mup_creator(next_creator, shape, dtype, init, context, *, mup_ctx):
     if mup_ctx is None:
