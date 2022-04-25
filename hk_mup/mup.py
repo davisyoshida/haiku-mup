@@ -56,7 +56,10 @@ class Mup:
 
             return updates, state
 
-        return optax.GradientTransformation(init_fn, update_fn)
+        return optax.chain(
+            optimizer,
+            optax.GradientTransformation(init_fn, update_fn)
+        )
 
     def retransform_model_fn(self, f):
         @wraps(f)
