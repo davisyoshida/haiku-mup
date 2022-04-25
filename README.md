@@ -2,7 +2,17 @@
 
 This is a (very preliminary) port of Yang and Hu et al.'s [μP repo](https://github.com/microsoft/mup) to Haiku and JAX. It's not feature complete, and I'm very open to suggestions on improving the usability.
 
+## Learning rate demo
+These plots show the evolution of the optimal learning rate for a 3-hidden-layer MLP on MNIST, trained for 10 epochs (5 trials per lr/width combination).
 
+With standard parameterization, the learning rate optimum continues changing as the width increases:
+
+<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/mlp_sp.png?raw=True" width="500" />
+
+
+With μP, the learning rate optimum stabilizes as width increases:
+
+<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/mlp.png?raw=True" width="500" />
 
 ## Usage
 ```python
@@ -49,6 +59,7 @@ optimizer = optax.adam(3e-4)
 optimizer = mup.wrap_optimizer(optimizer, adam=True) # 6. Use wrap_optimizer to get layer specific learning rates
 
 # Now the model can be trained as normal
+```
 
 ### Summary
 1. Replace output layers with `Readout` layers
