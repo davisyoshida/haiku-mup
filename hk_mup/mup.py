@@ -21,13 +21,14 @@ class Mup:
         self.base_shapes = None
 
         self.readout_mults = {}
-        self._lrs = defaultdict(dict)
+        self._adam_lrs = defaultdict(dict)
+        self._sgd_lrs = defaultdict(dict)
 
     @contextmanager
     def init_context(self, base_shapes):
         self.base_shapes = base_shapes
         token = _mup_context.set(self)
-        if len(self._lrs):
+        if len(self._adam_lrs):
             raise ValueError('Attempted to re-use mup context')
         try:
             yield
@@ -36,10 +37,7 @@ class Mup:
             self.base_shapes = None
 
     def wrap_optimizer(self, optimizer, adam=True):
-        if not adam:
-            raise NotImplementedError()
-
-        if not self._lrs:
+        if not self._adam_lrs:
             raise ValueError('Attempted to wrap optimizer before initializing network')
 
         def init_fn(params):
@@ -51,7 +49,7 @@ class Mup:
             updates = jax.tree_map(
                 lambda update, scale: update * scale,
                 updates,
-                dict(self._lrs)
+                dict(self._adam_lrs if adam else self._sgd_lrs)
             )
 
             return updates, state
@@ -69,9 +67,10 @@ class Mup:
 
         return hk.transform(fn)
 
-    def set_lr(self, full_name, value):
+    def set_lrs(self, full_name, sgd_lr, adam_lr):
         parent, name = full_name.rsplit('/')
-        self._lrs[parent][name] = value
+        self._sgd_lrs[parent][name] = sgd_lr
+        self._adam_lrs[parent][name] = adam_lr
 
 @contextmanager
 def apply_mup():
@@ -100,18 +99,34 @@ def _mup_creator(next_creator, shape, dtype, init, context, *, mup_ctx):
         raise ValueError('Attempted to use `use_mup()` outside of `apply_mup` context')
 
     n_inf, inf_ratios = _get_inf_ratios(mup_ctx, context.full_name, shape)
-    parent, _ = context.full_name.rsplit('/')
+    full_name = context.full_name
+    parent, _ = full_name.rsplit('/')
 
     width_mult = 1 if n_inf == 0 else inf_ratios[0]
-    is_readout_w = isinstance(context.module, Readout) and n_inf == 1
     if n_inf == 2:
-        mup_ctx.set_lr(context.full_name, 1 / width_mult)
-    elif is_readout_w:
-        init = ConstantStdInit(init, div=1 / width_mult)
-        mup_ctx.set_lr(context.full_name, 1.)
-        mup_ctx.readout_mults[parent] = width_mult
+        fanin_fanout_ratio = width_mult / inf_ratios[1]
+        mup_ctx.set_lrs(
+            full_name,
+            sgd_lr=1 / fanin_fanout_ratio,
+            adam_lr=1 / width_mult
+        )
+    elif n_inf == 1:
+        mup_ctx.set_lrs(
+            full_name,
+            sgd_lr=width_mult,
+            adam_lr=1.
+        )
     else:
-        mup_ctx.set_lr(context.full_name, 1.)
+        mup_ctx.set_lrs(
+            full_name,
+            sgd_lr=1.,
+            adam_lr=1.
+        )
+
+    is_readout_w = isinstance(context.module, Readout) and n_inf == 1
+    if is_readout_w:
+        init = ConstantStdInit(init, div=1 / width_mult)
+        mup_ctx.readout_mults[parent] = width_mult
 
     return next_creator(shape, dtype, init)
 
