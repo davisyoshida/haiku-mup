@@ -2,6 +2,12 @@
 
 This is a (very preliminary) port of Yang and Hu et al.'s [μP repo](https://github.com/microsoft/mup) to Haiku and JAX. It's not feature complete, and I'm very open to suggestions on improving the usability.
 
+## Installation
+
+```
+pip install haiku-mup
+```
+
 ## Learning rate demo
 These plots show the evolution of the optimal learning rate for a 3-hidden-layer MLP on MNIST, trained for 10 epochs (5 trials per lr/width combination).
 
@@ -23,7 +29,7 @@ import jax.numpy as jnp
 import haiku as hk
 from optax import adam, chain
 
-from hk_mup import apply_mup, Mup, Readout
+from haiku_mup import apply_mup, Mup, Readout
 
 class MyModel(hk.Module):
     def __init__(self, width, n_classes=10):
