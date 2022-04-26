@@ -23,14 +23,14 @@ import jax.numpy as jnp
 import haiku as hk
 from optax import adam, chain
 
-from hk_mup import apply_mup, Mup, Readout, get_shapes
+from hk_mup import apply_mup, Mup, Readout
 
 class MyModel(hk.Module):
     def __init__(self, width, n_classes=10):
         super().__init__(name='model')
         self.width = width
         self.n_classes = n_classes
-        
+
     def __call__(self, x):
         x = hk.Linear(self.width)(x)
         x = jax.nn.relu(x)
@@ -40,20 +40,20 @@ def fn(x, width=100):
     with apply_mup(): # 2. Modify parameter creation with apply_mup()
         return MyModel(width)(x)
 
+mup = Mup()
+
 init_input = jnp.zeros(123)
 base_model = hk.transform(partial(fn, width=1))
-base_params = hk.init(fn, jax.random.PRNGKey(0), init_input)
-base_shapes = get_shapes(base_params) # 3. Get shapes from base model
-del base_params
 
+with mup.init_base(): # 3. Use this context manager when initializing the base model
+    hk.init(fn, jax.random.PRNGKey(0), init_input) 
 
 model = hk.transform(fn)
 
-mup = Mup()
-with mup.init_context(): # 4. Use a `Mup` instance to initialize your model
+with mup.init_target(): # 4. Use this context manager when initializng the target model
     params = model.init(jax.random.PRNGKey(0), init_input)
 
-model = mup.retransform_model_fn(fn) # 5. Get final model with `retransform_model_fn`
+model = mup.wrap_model(model) # 5. Modify your model with Mup
 
 optimizer = optax.adam(3e-4)
 optimizer = mup.wrap_optimizer(optimizer, adam=True) # 6. Use wrap_optimizer to get layer specific learning rates
@@ -63,8 +63,8 @@ optimizer = mup.wrap_optimizer(optimizer, adam=True) # 6. Use wrap_optimizer to 
 
 ### Summary
 1. Replace output layers with `Readout` layers
-2. Modify parameter creation with the apply_mup() context manager
-3. Get shapes from base model size
-4. Use a `Mup` instance to initialize your model with Mup.init_context
-5. Get final model with `Mup.retransform_model_fn`
+2. Modify parameter creation with the `apply_mup()` context manager
+3. Initialize a base model inside a `Mup.init_base()` context
+4. Initialize the target model inside a `Mup.init_target()` context
+5. Wrap the model with `Mup.wrap_model`
 6. Wrap optimizer with `Mup.wrap_optimizer`

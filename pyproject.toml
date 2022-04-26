@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "haiku-mup"
+version = "0.1.0"
+description = "A simple port of μP  to Haiku/JAX."
+authors = ["Davis Yoshida <dyoshida@ttic.edu>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+jax = "^0.3.7"
+dm-haiku = "^0.0.6"
+optax = "^0.1.2"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
