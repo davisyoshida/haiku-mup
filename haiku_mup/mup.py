@@ -88,7 +88,7 @@ class Mup:
 
         n_inf, inf_ratios = self._get_inf_ratios(context.full_name, shape)
         full_name = context.full_name
-        parent, _ = full_name.rsplit('/')
+        parent, name = full_name.rsplit('/')
 
         width_mult = 1 if n_inf == 0 else inf_ratios[0]
         if n_inf == 2:
@@ -113,7 +113,7 @@ class Mup:
 
         new_init = init
 
-        is_readout_w = isinstance(context.module, Readout) and n_inf == 1
+        is_readout_w = isinstance(context.module, Readout) and name == 'w'
         if is_readout_w:
             new_init = ConstantStdInit(init, div=1 / width_mult)
             self.readout_mults[parent] = width_mult
