@@ -74,3 +74,17 @@ optimizer = mup.wrap_optimizer(optimizer, adam=True) # 6. Use wrap_optimizer to 
 4. Initialize the target model inside a `Mup.init_target()` context
 5. Wrap the model with `Mup.wrap_model`
 6. Wrap optimizer with `Mup.wrap_optimizer`
+
+## Shared Input/Output embeddings
+If you want to use the input embedding matrix as the output layer's weight matrix make the following two replacements:
+
+```python
+# old: embedding_layer = hk.Embed(*args, **kwargs)
+# new:
+embedding_layer = haiku_mup.SharedEmbed(*args, **kwargs)
+input_embeds = embedding_layer(x)
+
+#old: output = hk.Linear(n_classes)(x)
+# new:
+output = haiku_mup.SharedReadout()(embedding_layer.get_weights(), x) 
+```
