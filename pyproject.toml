@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "haiku-mup"
-version = "0.1.2"
+version = "0.1.3"
 description = "A simple port of μP  to Haiku/JAX."
 authors = ["Davis Yoshida <dyoshida@ttic.edu>"]
 license = "MIT"
