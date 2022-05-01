@@ -88,7 +88,7 @@ class Mup:
 
         n_inf, inf_ratios = self._get_inf_ratios(context.full_name, shape)
         full_name = context.full_name
-        parent, name = full_name.rsplit('/')
+        parent, name = full_name.rsplit('/', maxsplit=1)
 
         width_mult = 1 if n_inf == 0 else inf_ratios[0]
         if n_inf == 2:
@@ -133,7 +133,7 @@ class Mup:
     def wrap_optimizer(self, optimizer, adam=True):
         """Apply the per-parameter learning rates computed by `init_context` to an Optax optimizer."""
         if not self._adam_lrs:
-            raise ValueError('Attempted to wrap optimizer before initializing network')
+            raise ValueError('Attempted to wrap optimizer before initializing network. Did you forget to use init_base/init_target/apply_mup?')
 
         def init_fn(params):
             del params
@@ -155,7 +155,7 @@ class Mup:
         )
 
     def _set_lrs(self, full_name, sgd_lr, adam_lr):
-        parent, name = full_name.rsplit('/')
+        parent, name = full_name.rsplit('/', maxsplit=1)
         self._sgd_lrs[parent][name] = sgd_lr
         self._adam_lrs[parent][name] = adam_lr
 
