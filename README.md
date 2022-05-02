@@ -11,14 +11,15 @@ pip install haiku-mup
 ## Learning rate demo
 These plots show the evolution of the optimal learning rate for a 3-hidden-layer MLP on MNIST, trained for 10 epochs (5 trials per lr/width combination).
 
-With standard parameterization, the learning rate optimum continues changing as the width increases:
+With standard parameterization, the learning rate optimum (w.r.t. training loss) continues changing as the width increases, but μP keeps it approximately fixed:
 
-<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/mlp_sp.png?raw=True" width="500" />
+<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/combined.png?raw=True" width="1024" />
 
+Here's the same kind of plot for 3 layer transformers on the Penn Treebank, this time showing Validation loss instead of training loss, scaling both the number of heads and the embedding dimension simultaneously:
 
-With μP, the learning rate optimum stabilizes as width increases:
+<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/ptb_combined.png?raw=True" width="1024" />
 
-<img src="https://github.com/davisyoshida/haiku-mup/blob/master/figures/mlp.png?raw=True" width="500" />
+Note that the optima have the same value for `n_embd=80`. That's because the other hyperparameters were tuned using an SP model with that width, so this shouldn't be biased in favor of μP.
 
 ## Usage
 ```python
