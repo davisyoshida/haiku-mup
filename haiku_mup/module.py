@@ -17,7 +17,7 @@ class Readout(hk.Linear):
                     'or after calling Mup.wrap_model.'
                 )
             if mup_ctx.mode == MupMode.apply:
-                inputs /= mup_ctx.readout_mults[self.name]
+                inputs /= mup_ctx.readout_mults[self.module_name]
 
         result = super().__call__(inputs, **kwargs)
 
